@@ -1,6 +1,6 @@
 compile:
-	g++ -o server.o src/server.cpp -I/include
-	g++ -o client.o src/client.cpp -I/include
+	g++ -o server.o src/server.cpp -I.
+	g++ -o client.o src/client.cpp -I.
 
 server:
 	./server.o 8080
