@@ -4,7 +4,7 @@ void str_trim_lf(char *arr, int length)
 {
     int i;
     for (i = 0; i < length; i++)
-    { // trim \n
+    {
         if (arr[i] == '\n')
         {
             arr[i] = '\0';
@@ -13,13 +13,12 @@ void str_trim_lf(char *arr, int length)
     }
 }
 
-// using namespace std;
 int main(int argc, char *argv[])
 {
     // we need 2 things: ip address and port number, in that order
     if (argc != 3)
     {
-        std::cerr << "Usage: ip_address port" << std::endl;
+        std::cerr << RED << "Usage: ip_address port" << RESET << std::endl;
         exit(0);
     }
 
@@ -34,17 +33,16 @@ int main(int argc, char *argv[])
     std::cout << "Please enter your name: ";
     fgets(name, 32, stdin);
     str_trim_lf(name, strlen(name));
-
     if (strlen(name) > 32 || strlen(name) < 2)
     {
-        printf("Name must be less than 30 and more than 2 characters.\n");
+        std::cout << RED << "Name must be less than 30 and more than 2 characters" << RESET << std::endl;
         return EXIT_FAILURE;
     }
 
     // setup a socket and connection tools
     struct hostent *host = gethostbyname(serverIp);
     sockaddr_in sendSockAddr;
-    bzero((char *)&sendSockAddr, sizeof(sendSockAddr));
+    memset(&sendSockAddr, 0, sizeof(sendSockAddr)); // clear the buffer
     sendSockAddr.sin_family = AF_INET;
     sendSockAddr.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr *)*host->h_addr_list));
     sendSockAddr.sin_port = htons(port);
@@ -54,16 +52,13 @@ int main(int argc, char *argv[])
     int status = connect(clientSd, (sockaddr *)&sendSockAddr, sizeof(sendSockAddr));
     if (status < 0)
     {
-        std::cout << "Error connecting to socket!" << std::endl;
+        std::cout << RED << "Error connecting to socket!" << RESET << std::endl;
         exit(1);
     }
-    std::cout << "Connected to the server!" << std::endl;
-    send(clientSd, (char *)&name, strlen(name), 0);
-    std::cout << "WELCOME TO THE CHATROOM " << std::endl;
 
-    // int bytesRead, bytesWritten = 0;
-    // struct timeval start1, end1;
-    // gettimeofday(&start1, NULL);
+    std::cout << GRN << "Connected to the server!" << RESET << std::endl;
+    send(clientSd, (char *)&name, strlen(name), 0);
+    std::cout << CYN << "Welcome to our server!! " << RESET << std::endl;
 
     while (1)
     {
@@ -78,25 +73,22 @@ int main(int argc, char *argv[])
             break;
         }
 
-        // bytesWritten += send(clientSd, (char *)&msg, strlen(msg), 0);
         send(clientSd, (char *)&msg, strlen(msg), 0);
         std::cout << "Awaiting server response..." << std::endl;
         memset(&msg, 0, sizeof(msg)); // clear the buffer
-        // bytesRead += recv(clientSd, (char *)&msg, sizeof(msg), 0);
+
+        // Receiving message from server and displaying
         recv(clientSd, (char *)&msg, sizeof(msg), 0);
         if (!strcmp(msg, "exit"))
         {
-            std::cout << "Server has quit the session" << std::endl;
+            std::cout << RED << "Server has quit the session" << RESET << std::endl;
             break;
         }
-        std::cout << "Server: " << msg << std::endl;
+        std::cout << MAG << "Server: " << msg << RESET << std::endl;
     }
-    // gettimeofday(&end1, NULL);
-    // close(clientSd);
-    // std::cout << "********Session********" << std::endl;
-    // std::cout << "Bytes written: " << bytesWritten << " Bytes read: " << bytesRead << std::endl;
-    // std::cout << "Elapsed time: " << (end1.tv_sec - start1.tv_sec)
-    //      << " secs" << std::endl;
-    std::cout << "Connection closed" << std::endl;
+
+    close(clientSd);
+    std::cout << RED << "Connection closed" << RESET << std::endl;
+    std::cout << CYN << "Thank you for visiting!! " << RESET << std::endl;
     return 0;
 }

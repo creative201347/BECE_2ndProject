@@ -1,24 +1,24 @@
 #include <include/server.hpp>
 
-// using namespace std;
 int main(int argc, char *argv[])
 {
     // for the server, we only need to specify a port number
     if (argc != 2)
     {
-        std::cerr << "Usage: port" << std::endl;
+        std::cerr << RED << "Usage: port" << RESET << std::endl;
         exit(0);
     }
 
     // grab the port number
     int port = atoi(argv[1]);
+
     // buffer to send and receive messages with
     char msg[1500];
     char client[50];
 
     // setup a socket and connection tools
     sockaddr_in servAddr;
-    bzero((char *)&servAddr, sizeof(servAddr));
+    memset(&servAddr, 0, sizeof(servAddr)); // clear the buffer
     servAddr.sin_family = AF_INET;
     servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servAddr.sin_port = htons(port);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     int serverSd = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSd < 0)
     {
-        std::cerr << "Error establishing the server socket" << std::endl;
+        std::cerr << RED << "Error establishing the server socket" << RESET << std::endl;
         exit(0);
     }
 
@@ -36,54 +36,49 @@ int main(int argc, char *argv[])
     int bindStatus = bind(serverSd, (struct sockaddr *)&servAddr, sizeof(servAddr));
     if (bindStatus < 0)
     {
-        std::cerr << "Error binding socket to local address" << std::endl;
+        std::cerr << RED << "Error binding socket to local address" << RESET << std::endl;
         exit(0);
     }
 
-    std::cout << "Waiting for a client to connect..." << std::endl;
     // listen for up to 5 requests at a time
+    std::cout << "Waiting for  client to connect..." << std::endl;
     listen(serverSd, 5);
 
     // receive a request from client using accept
     // we need a new address to connect with the client
     sockaddr_in newSockAddr;
     socklen_t newSockAddrSize = sizeof(newSockAddr);
+
     // accept, create a new socket descriptor to
     // handle the new connection with client
     int newSd = accept(serverSd, (sockaddr *)&newSockAddr, &newSockAddrSize);
     if (newSd < 0)
     {
-        std::cerr << "Error accepting request from client!" << std::endl;
+        std::cerr << RED << "Error accepting request from client!" << RESET << std::endl;
         exit(1);
     }
-    std::cout << "Connected with client!" << std::endl;
+    std::cout << GRN << "Connected with client!" << RESET << std::endl;
 
-    // Name
+    // receive client's name
     memset(&client, 0, sizeof(client)); // clear the buffer
     recv(newSd, (char *)&client, sizeof(client), 0);
-    std::cout << client << " has joined the socket" << std::endl;
-
-    // lets keep track of the session time
-    // struct timeval start1, end1;
-    // gettimeofday(&start1, NULL);
-    // also keep track of the amount of data sent as well
-    // int bytesRead, bytesWritten = 0;
+    std::cout << GRN << client << " has joined the socket" << RESET << std::endl;
 
     while (1)
     {
-        // receive a message from the client (listen)
         std::cout << "Awaiting client response..." << std::endl;
         memset(&msg, 0, sizeof(msg)); // clear the buffer
-        // bytesRead += recv(newSd, (char *)&msg, sizeof(msg), 0);
+
+        // receive a message from the client (listen)
         recv(newSd, (char *)&msg, sizeof(msg), 0);
         if (!strcmp(msg, "exit"))
         {
-            std::cout << "Client has quit the session" << std::endl;
+            std::cout << RED << "Client has quit the session" << RESET << std::endl;
             break;
         }
+        std::cout << BLU << client << ": " << msg << RESET << std::endl;
 
-        std::cout << client << ": " << msg << std::endl;
-        std::cout << ">";
+        std::cout << "Enter a message: ";
         std::string data;
         std::getline(std::cin, data);
         memset(&msg, 0, sizeof(msg)); // clear the buffer
@@ -95,20 +90,13 @@ int main(int argc, char *argv[])
             break;
         }
         // send the message to client
-        // bytesWritten += send(newSd, (char *)&msg, strlen(msg), 0);
         send(newSd, (char *)&msg, strlen(msg), 0);
     }
-    // we need to close the socket descriptors after we're all done
-    // gettimeofday(&end1, NULL);
     close(newSd);
     close(serverSd);
 
-    // std::cout << "********Session********" << std::endl;
-    // std::cout << "Bytes written: " << bytesWritten << " Bytes read: " << bytesRead << std::endl;
-    // std::cout << "Elapsed time: " << (end1.tv_sec - start1.tv_sec)
-    //      << " secs" << std::endl;
-
-    std::cout << "Connection closed..." << std::endl;
+    std::cout << RED << "Connection closed..." << RESET << std::endl;
+    std::cout << CYN << "Thank you for visiting!! " << RESET << std::endl;
 
     return 0;
 }

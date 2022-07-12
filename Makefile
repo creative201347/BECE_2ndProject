@@ -1,12 +1,23 @@
-compile:
-	g++ -o server.o src/server.cpp -I.
-	g++ -o client.o src/client.cpp -I.
+CC = g++
+RM = rm -f
+CPPFLAGS = -I.
+OBJECT_FILES = server.o client.o
 
-server:
-	./server.o 4000
+compile: $(OBJECT_FILES)
+	$(CC) -o server server.o
+	$(CC) -o client client.o 
 
-client:
-	./client.o 127.0.0.1 4000
+server.o: src/server.cpp include/server.hpp
+	$(CC) -o server.o -c src/server.cpp $(CPPFLAGS)
+
+client.o: src/client.cpp include/client.hpp
+	$(CC) -o client.o -c src/client.cpp $(CPPFLAGS)
+
+host:
+	./server 4000
+
+join:
+	./client 127.0.0.1 4000
 
 clean:
-	rm -f client.o server.o
+	rm -f *.o server client	
